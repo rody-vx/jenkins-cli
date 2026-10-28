@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"github.com/google/go-github/v29/github"
 	"github.com/jenkins-zh/jenkins-cli/app/cmd/common"
@@ -223,7 +224,7 @@ func init() {
 	// add sub-commands
 	NewShutdownCmd(&rootOptions)
 	// fork 의 GitHub Release(jcli-<os>-<arch>.tar.gz) 를 기준으로 버전 확인·업그레이드
-	rootCmd.AddCommand(ver.NewVersionCmd("rody-vx", "jenkins-cli", "jcli", nil))
+	rootCmd.AddCommand(newVersionCmd("rody-vx", "jenkins-cli"))
 
 	var ctx context.Context
 	if defMgr, err := alias.GetDefaultAliasMgrWithNameAndInitialData(rootCmd.Name(), []alias.Alias{
@@ -301,6 +302,26 @@ func GetCurrentJenkinsFromOptions() (jenkinsServer *appCfg.JenkinsServer) {
 func getCurrentJenkinsFromOptionsOrDie() (jenkinsServer *appCfg.JenkinsServer) {
 	if jenkinsServer = GetCurrentJenkinsFromOptions(); jenkinsServer == nil {
 		log.Fatal("Cannot found Jenkins by", rootOptions.Jenkins)
+	}
+	return
+}
+
+// newVersionCmd wraps the version command of cobra-extension,
+// which prints the repository URL without a trailing newline
+func newVersionCmd(org, repo string) (verCmd *cobra.Command) {
+	verCmd = ver.NewVersionCmd(org, repo, "jcli", nil)
+	repoURL := fmt.Sprintf("https://github.com/%s/%s", org, repo)
+	run := verCmd.RunE
+	verCmd.RunE = func(c *cobra.Command, args []string) (err error) {
+		out := c.OutOrStderr()
+		buf := new(bytes.Buffer)
+		c.SetOut(buf)
+		err = run(c, args)
+		c.SetOut(out)
+
+		text := strings.Replace(buf.String(), repoURL, repoURL+"\n", 1)
+		_, _ = io.WriteString(out, strings.TrimSuffix(text, "\n")+"\n")
+		return
 	}
 	return
 }
