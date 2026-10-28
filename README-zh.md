@@ -32,37 +32,11 @@ Jenkins CLI 可以帮忙你轻松地管理 Jenkins。不管你是一名插件开
 
 ## 安装
 
-我们目前支持的操作系统包括：MacOS、Linux 以及 Windows。
+本仓库是 [jenkins-zh/jenkins-cli](https://github.com/jenkins-zh/jenkins-cli) 的 fork，只通过 [Homebrew](https://brew.sh/)（macOS、Linux）发布。
 
-### mac
-
-你可以通过 `brew` 来安装 jcli。
-
-```text
-brew tap jenkins-zh/jcli
-brew install jcli
+```shell
+brew install rody-vx/tap/jcli
 ```
-
-### Linux
-
-要在 Linux 操作系统上安装 `jcli` 的话，非常简单。只需要执行下面的命令即可：
-
-```text
-curl -L https://github.com/jenkins-zh/jenkins-cli/releases/latest/download/jcli-linux-amd64.tar.gz|tar xzv
-sudo mv jcli /usr/local/bin/
-```
-
-### Windows
-
-你只要[点击这里](https://github.com/jenkins-zh/jenkins-cli/releases/latest/download/jcli-windows-amd64.zip)就可以下载到最新版本的压缩包。之后，把解压后的文件 `jcli` 拷贝到你的系统目录下即可。
-
-### 其他包管理器
-
-这里还有一些其他的包管理器：
-
-* [Scoop](https://scoop.sh/) 的用户可以使用命令 `scoop install jcli` 来安装
-
-了解更多[如何下载 jcli](https://github.com/jenkins-zh/jenkins-cli/tree/e83af606f648040665b8b2955c1c2414bb68c1db/docs/book/zh/download-zh.md). 你可以从[这里](https://tooomm.github.io/github-release-stats/?username=jenkins-zh&repository=jenkins-cli)获取下载的统计信息。
 
 ## 入门
 
