@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
 	ext "github.com/linuxsuren/cobra-extension/version"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 	"os"

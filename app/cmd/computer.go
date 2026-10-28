@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"github.com/jenkins-zh/jenkins-cli/app/cmd/common"
-	appCfg "github.com/jenkins-zh/jenkins-cli/app/config"
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
 	"github.com/jenkins-zh/jenkins-client/pkg/computer"
 	"github.com/jenkins-zh/jenkins-client/pkg/core"
+	"github.com/rody-vx/jenkins-cli/app/cmd/common"
+	appCfg "github.com/rody-vx/jenkins-cli/app/config"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
 	"github.com/spf13/cobra"
 	"strings"
 )

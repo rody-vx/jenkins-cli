@@ -1,4 +1,4 @@
-module github.com/jenkins-zh/jenkins-cli
+module github.com/rody-vx/jenkins-cli
 
 go 1.23
 

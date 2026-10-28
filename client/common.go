@@ -15,9 +15,9 @@ import (
 	"go.uber.org/zap"
 	"moul.io/http2curl"
 
-	"github.com/jenkins-zh/jenkins-cli/util"
 	ext "github.com/linuxsuren/cobra-extension/version"
 	httpdownloader "github.com/linuxsuren/http-downloader/pkg/net"
+	"github.com/rody-vx/jenkins-cli/util"
 )
 
 // language is for global Accept Language

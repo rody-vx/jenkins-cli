@@ -3,11 +3,11 @@ package cmd
 import (
 	"fmt"
 	"github.com/hashicorp/go-version"
-	"github.com/jenkins-zh/jenkins-cli/app/cmd/common"
-	appCfg "github.com/jenkins-zh/jenkins-cli/app/config"
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
-	"github.com/jenkins-zh/jenkins-cli/client"
 	cobra_ext "github.com/linuxsuren/cobra-extension/pkg"
+	"github.com/rody-vx/jenkins-cli/app/cmd/common"
+	appCfg "github.com/rody-vx/jenkins-cli/app/config"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
+	"github.com/rody-vx/jenkins-cli/client"
 	"github.com/spf13/cobra"
 )
 

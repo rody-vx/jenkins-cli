@@ -2,7 +2,7 @@ package keyring
 
 import (
 	"fmt"
-	"github.com/jenkins-zh/jenkins-cli/app/config"
+	"github.com/rody-vx/jenkins-cli/app/config"
 	"github.com/zalando/go-keyring"
 )
 

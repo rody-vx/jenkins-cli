@@ -3,17 +3,17 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jenkins-zh/jenkins-cli/app/cmd/common"
-	"github.com/jenkins-zh/jenkins-cli/app/cmd/condition"
-	"github.com/jenkins-zh/jenkins-cli/client"
-	"github.com/jenkins-zh/jenkins-cli/util"
+	"github.com/rody-vx/jenkins-cli/app/cmd/common"
+	"github.com/rody-vx/jenkins-cli/app/cmd/condition"
+	"github.com/rody-vx/jenkins-cli/client"
+	"github.com/rody-vx/jenkins-cli/util"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
 	"sync"
 
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
 
 	"github.com/spf13/cobra"
 )

@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
-	"github.com/jenkins-zh/jenkins-cli/client"
-	"github.com/jenkins-zh/jenkins-cli/pkg/docker"
 	jenkinsFormula "github.com/jenkins-zh/jenkins-formulas/pkg/common"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
+	"github.com/rody-vx/jenkins-cli/client"
+	"github.com/rody-vx/jenkins-cli/pkg/docker"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )

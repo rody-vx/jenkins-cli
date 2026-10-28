@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"bytes"
-	"github.com/jenkins-zh/jenkins-cli/app/cmd/common"
-	"github.com/jenkins-zh/jenkins-cli/client"
-	"github.com/jenkins-zh/jenkins-cli/mock/mhttp"
+	"github.com/rody-vx/jenkins-cli/app/cmd/common"
+	"github.com/rody-vx/jenkins-cli/client"
+	"github.com/rody-vx/jenkins-cli/mock/mhttp"
 	"io/ioutil"
 	"os"
 	"path"

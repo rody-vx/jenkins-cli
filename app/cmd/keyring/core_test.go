@@ -2,8 +2,8 @@ package keyring_test
 
 import (
 	"fmt"
-	innerKeyring "github.com/jenkins-zh/jenkins-cli/app/cmd/keyring"
-	cfg "github.com/jenkins-zh/jenkins-cli/app/config"
+	innerKeyring "github.com/rody-vx/jenkins-cli/app/cmd/keyring"
+	cfg "github.com/rody-vx/jenkins-cli/app/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/zalando/go-keyring"
 	"testing"

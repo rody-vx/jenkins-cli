@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/jenkins-zh/jenkins-cli/util"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/rody-vx/jenkins-cli/util"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"

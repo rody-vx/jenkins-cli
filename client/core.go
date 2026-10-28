@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/jenkins-zh/jenkins-cli/util"
+	"github.com/rody-vx/jenkins-cli/util"
 	"go.uber.org/zap"
 	"net/http"
 )

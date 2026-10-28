@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/jenkins-zh/jenkins-cli/mock/mhttp"
+	"github.com/rody-vx/jenkins-cli/mock/mhttp"
 )
 
 // PrepareForGetIssuer only for test

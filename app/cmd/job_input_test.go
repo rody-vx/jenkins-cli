@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/golang/mock/gomock"
-	"github.com/jenkins-zh/jenkins-cli/client"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/rody-vx/jenkins-cli/client"
 	"io/ioutil"
 	"os"
 
-	"github.com/jenkins-zh/jenkins-cli/mock/mhttp"
+	"github.com/rody-vx/jenkins-cli/mock/mhttp"
 	// "github.com/AlecAivazis/survey/v2/core"
 	// "github.com/AlecAivazis/survey/v2/terminal"
 )

@@ -8,9 +8,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
-	"github.com/jenkins-zh/jenkins-cli/client"
 	jenkinsFormula "github.com/jenkins-zh/jenkins-formulas/pkg/common"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
+	"github.com/rody-vx/jenkins-cli/client"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )

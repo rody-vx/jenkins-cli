@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	appCfg "github.com/jenkins-zh/jenkins-cli/app/config"
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
 	httpdownloader "github.com/linuxsuren/http-downloader/pkg/net"
+	appCfg "github.com/rody-vx/jenkins-cli/app/config"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -12,9 +12,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jenkins-zh/jenkins-cli/app/helper"
+	"github.com/rody-vx/jenkins-cli/app/helper"
 
-	"github.com/jenkins-zh/jenkins-cli/client"
+	"github.com/rody-vx/jenkins-cli/client"
 	"github.com/spf13/cobra"
 )
 

@@ -3,14 +3,14 @@ package cmd
 import (
 	"bytes"
 	"github.com/golang/mock/gomock"
-	"github.com/jenkins-zh/jenkins-cli/client"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/rody-vx/jenkins-cli/client"
 	"io/ioutil"
 	"net/http"
 	"os"
 
-	"github.com/jenkins-zh/jenkins-cli/mock/mhttp"
+	"github.com/rody-vx/jenkins-cli/mock/mhttp"
 )
 
 var _ = Describe("center download command", func() {

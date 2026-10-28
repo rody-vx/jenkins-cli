@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
-	"github.com/jenkins-zh/jenkins-cli/client"
 	cobra_ext "github.com/linuxsuren/cobra-extension/pkg"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
+	"github.com/rody-vx/jenkins-cli/client"
 	"github.com/spf13/cobra"
 	"net/http"
 )

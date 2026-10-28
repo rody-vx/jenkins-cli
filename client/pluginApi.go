@@ -10,8 +10,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/jenkins-zh/jenkins-cli/util"
 	httpdownloader "github.com/linuxsuren/http-downloader/pkg"
+	"github.com/rody-vx/jenkins-cli/util"
 	"go.uber.org/zap"
 )
 

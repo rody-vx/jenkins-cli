@@ -3,15 +3,15 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jenkins-zh/jenkins-cli/app/cmd/common"
+	"github.com/rody-vx/jenkins-cli/app/cmd/common"
 	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/jenkins-zh/jenkins-cli/client"
+	"github.com/rody-vx/jenkins-cli/client"
 	"github.com/spf13/cobra"
 )
 

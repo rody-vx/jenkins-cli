@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	"github.com/golang/mock/gomock"
-	"github.com/jenkins-zh/jenkins-cli/mock/mhttp"
 	httpdownloader "github.com/linuxsuren/http-downloader/pkg"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/rody-vx/jenkins-cli/mock/mhttp"
 )
 
 var _ = Describe("job test", func() {

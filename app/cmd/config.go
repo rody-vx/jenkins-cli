@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/jenkins-zh/jenkins-cli/app/cmd/common"
-	cmdCfg "github.com/jenkins-zh/jenkins-cli/app/cmd/config"
-	"github.com/jenkins-zh/jenkins-cli/app/cmd/keyring"
-	appCfg "github.com/jenkins-zh/jenkins-cli/app/config"
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
+	"github.com/rody-vx/jenkins-cli/app/cmd/common"
+	cmdCfg "github.com/rody-vx/jenkins-cli/app/cmd/config"
+	"github.com/rody-vx/jenkins-cli/app/cmd/keyring"
+	appCfg "github.com/rody-vx/jenkins-cli/app/config"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
 	"strings"
 
 	"io/ioutil"

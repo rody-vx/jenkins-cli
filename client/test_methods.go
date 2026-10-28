@@ -12,8 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jenkins-zh/jenkins-cli/mock/mhttp"
 	httpdownloader "github.com/linuxsuren/http-downloader/pkg"
+	"github.com/rody-vx/jenkins-cli/mock/mhttp"
 )
 
 // PrepareForEmptyAvaiablePluginList only for test

@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"bytes"
-	"github.com/jenkins-zh/jenkins-cli/client"
-	"github.com/jenkins-zh/jenkins-cli/util"
 	"github.com/jenkins-zh/jenkins-client/pkg/computer"
+	"github.com/rody-vx/jenkins-cli/client"
+	"github.com/rody-vx/jenkins-cli/util"
 	"io"
 	"io/ioutil"
 	"net/http"

@@ -2,9 +2,9 @@ package client
 
 import (
 	"github.com/golang/mock/gomock"
-	"github.com/jenkins-zh/jenkins-cli/mock/mhttp"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/rody-vx/jenkins-cli/mock/mhttp"
 )
 
 var _ = Describe("status test", func() {

@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/jenkins-zh/jenkins-cli/app/cmd/keyring"
+	"github.com/rody-vx/jenkins-cli/app/cmd/keyring"
 	"go.uber.org/zap"
 
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
 	"github.com/spf13/cobra"
 )
 

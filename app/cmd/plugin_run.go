@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"github.com/jenkins-zh/jenkins-cli/app/cmd/common"
+	"github.com/rody-vx/jenkins-cli/app/cmd/common"
 	"os"
 
-	"github.com/jenkins-zh/jenkins-cli/util"
+	"github.com/rody-vx/jenkins-cli/util"
 
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
 
 	"github.com/spf13/cobra"
 )

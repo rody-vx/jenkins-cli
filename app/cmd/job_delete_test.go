@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/Netflix/go-expect"
-	"github.com/jenkins-zh/jenkins-cli/app/cmd/common"
-	"github.com/jenkins-zh/jenkins-cli/client"
+	"github.com/rody-vx/jenkins-cli/app/cmd/common"
+	"github.com/rody-vx/jenkins-cli/client"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -17,8 +17,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/require"
 
-	"github.com/jenkins-zh/jenkins-cli/mock/mhttp"
 	httpdownloader "github.com/linuxsuren/http-downloader/pkg"
+	"github.com/rody-vx/jenkins-cli/mock/mhttp"
 )
 
 var _ = Describe("job delete command", func() {

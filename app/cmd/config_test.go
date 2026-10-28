@@ -3,9 +3,9 @@ package cmd
 import (
 	"bytes"
 	"github.com/golang/mock/gomock"
-	. "github.com/jenkins-zh/jenkins-cli/app/config"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	. "github.com/rody-vx/jenkins-cli/app/config"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )

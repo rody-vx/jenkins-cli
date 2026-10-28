@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/jenkins-zh/jenkins-cli/app/cmd/common"
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
+	"github.com/rody-vx/jenkins-cli/app/cmd/common"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jenkins-zh/jenkins-cli/client"
 	httpdownloader "github.com/linuxsuren/http-downloader/pkg"
+	"github.com/rody-vx/jenkins-cli/client"
 	"github.com/spf13/cobra"
 )
 

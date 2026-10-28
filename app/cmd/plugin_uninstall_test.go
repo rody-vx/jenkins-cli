@@ -9,8 +9,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/jenkins-zh/jenkins-cli/client"
-	"github.com/jenkins-zh/jenkins-cli/mock/mhttp"
+	"github.com/rody-vx/jenkins-cli/client"
+	"github.com/rody-vx/jenkins-cli/mock/mhttp"
 )
 
 var _ = Describe("plugin uninstall command", func() {

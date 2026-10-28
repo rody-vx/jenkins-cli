@@ -5,11 +5,11 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/google/go-github/v29/github"
-	"github.com/jenkins-zh/jenkins-cli/app/cmd/common"
 	"github.com/jenkins-zh/jenkins-client/pkg/core"
 	alias "github.com/linuxsuren/go-cli-alias/pkg"
 	"github.com/linuxsuren/go-cli-alias/pkg/cmd"
 	goPlugin "github.com/linuxsuren/go-cli-plugin/pkg"
+	"github.com/rody-vx/jenkins-cli/app/cmd/common"
 	"golang.org/x/net/context"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"io"
@@ -21,14 +21,14 @@ import (
 	"strings"
 	"time"
 
-	appCfg "github.com/jenkins-zh/jenkins-cli/app/config"
-	"github.com/jenkins-zh/jenkins-cli/app/health"
+	appCfg "github.com/rody-vx/jenkins-cli/app/config"
+	"github.com/rody-vx/jenkins-cli/app/health"
 
-	"github.com/jenkins-zh/jenkins-cli/app/i18n"
-	"github.com/jenkins-zh/jenkins-cli/util"
 	ver "github.com/linuxsuren/cobra-extension/version"
+	"github.com/rody-vx/jenkins-cli/app/i18n"
+	"github.com/rody-vx/jenkins-cli/util"
 
-	"github.com/jenkins-zh/jenkins-cli/client"
+	"github.com/rody-vx/jenkins-cli/client"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"

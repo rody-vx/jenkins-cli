@@ -3,9 +3,9 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"github.com/jenkins-zh/jenkins-cli/util"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/rody-vx/jenkins-cli/util"
 	"io/ioutil"
 	"os"
 	"path"

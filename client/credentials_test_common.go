@@ -9,8 +9,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/jenkins-zh/jenkins-cli/mock/mhttp"
 	httpdownloader "github.com/linuxsuren/http-downloader/pkg"
+	"github.com/rody-vx/jenkins-cli/mock/mhttp"
 )
 
 // PrepareForGetCredentialList only for test

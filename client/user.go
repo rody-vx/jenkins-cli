@@ -3,7 +3,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jenkins-zh/jenkins-cli/util"
+	"github.com/rody-vx/jenkins-cli/util"
 	"io"
 	"net/http"
 	"net/url"
