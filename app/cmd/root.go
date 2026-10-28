@@ -16,7 +16,6 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -223,10 +222,8 @@ func init() {
 
 	// add sub-commands
 	NewShutdownCmd(&rootOptions)
-	rootCmd.AddCommand(ver.NewVersionCmd("jenkins-zh", "jenkins-cli", "jcli", func(version string) string {
-		return fmt.Sprintf("https://cdn.jsdelivr.net/gh/jenkins-zh/jcli-repo@%s/jcli-%s-amd64.tar.gz",
-			version, runtime.GOOS)
-	}))
+	// fork 의 GitHub Release(jcli-<os>-<arch>.tar.gz) 를 기준으로 버전 확인·업그레이드
+	rootCmd.AddCommand(ver.NewVersionCmd("rody-vx", "jenkins-cli", "jcli", nil))
 
 	var ctx context.Context
 	if defMgr, err := alias.GetDefaultAliasMgrWithNameAndInitialData(rootCmd.Name(), []alias.Alias{
