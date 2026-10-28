@@ -2,24 +2,47 @@ name: Release
 
 on:
   push:
-    tags:
-      - '*'
+    tags: ["v*"]
+
+permissions:
+  contents: write
 
 jobs:
-  goreleaser:
-    runs-on: ubuntu-20.04
+  release:
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Unshallow
-      run: git fetch --prune --unshallow
-    - name: Set up Go
-      uses: actions/setup-go@v5.2.0
-      with:
-        go-version: 1.23.x
-    - name: Run GoReleaser
-      uses: goreleaser/goreleaser-action@v6.1.0
-      with:
-        args: release --clean
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN_SECRETS }}
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build all platforms
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          COMMIT="$(git rev-parse --short HEAD)"
+          DATE="$(date -u +%FT%TZ)"
+          PKG=github.com/linuxsuren/cobra-extension/version
+          LDFLAGS="-s -w -X ${PKG}.version=${VERSION} -X ${PKG}.commit=${COMMIT} -X ${PKG}.date=${DATE}"
+          mkdir -p dist
+          for target in darwin/arm64 darwin/amd64 linux/amd64 linux/arm64; do
+            os="${target%/*}"; arch="${target#*/}"
+            work="build/jcli-${os}-${arch}"
+            mkdir -p "${work}"
+            CGO_ENABLED=0 GOOS="${os}" GOARCH="${arch}" go build -trimpath -ldflags="${LDFLAGS}" -o "${work}/jcli" main.go
+            cp README.md "${work}/"
+            tar -czf "dist/jcli-${os}-${arch}.tar.gz" -C "${work}" jcli README.md
+          done
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum jcli-*.tar.gz > checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/jcli-*.tar.gz
+            dist/checksums.txt
