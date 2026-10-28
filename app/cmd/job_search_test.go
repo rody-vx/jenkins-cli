@@ -22,6 +22,8 @@ var _ = Describe("job search command", func() {
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 		jobSearchOption.RoundTripper = roundTripper
+		jobSearchOption.Plugin = "pipeline-restful-api"
+		jobSearchCmd.Flags().Lookup("plugin").Changed = false
 		rootCmd.SetArgs([]string{})
 		rootOptions.Jenkins = ""
 		rootOptions.ConfigFile = "test.yaml"
@@ -52,7 +54,7 @@ var _ = Describe("job search command", func() {
 			client.PrepareOneItem(roundTripper, "http://localhost:8080/jenkins", name, kind,
 				"admin", "111e3a2f0231198855dceaff96f20540a9")
 
-			rootCmd.SetArgs([]string{"job", "search", name, "--type", kind})
+			rootCmd.SetArgs([]string{"job", "search", name, "--type", kind, "-p", "pipeline-restful-api"})
 
 			buf := new(bytes.Buffer)
 			rootCmd.SetOutput(buf)
@@ -73,7 +75,7 @@ fake fake        WorkflowJob job/fake/
 			client.PrepareOneItem(roundTripper, "http://localhost:8080/jenkins", "", "",
 				"admin", "111e3a2f0231198855dceaff96f20540a9")
 
-			rootCmd.SetArgs([]string{"job", "search", "--type=", "--name="})
+			rootCmd.SetArgs([]string{"job", "search", "--type=", "--name=", "-p", "pipeline-restful-api"})
 
 			buf := new(bytes.Buffer)
 			rootCmd.SetOutput(buf)
@@ -82,6 +84,27 @@ fake fake        WorkflowJob job/fake/
 
 			Expect(buf.String()).To(Equal(`Name DisplayName Type        URL
 fake fake        WorkflowJob job/fake/
+`))
+		})
+
+		It("should success, search via core API without search config", func() {
+			data, err := GenerateSampleConfig()
+			Expect(err).To(BeNil())
+			err = ioutil.WriteFile(rootOptions.ConfigFile, data, 0664)
+			Expect(err).To(BeNil())
+
+			client.PrepareForSearchViaAPI(roundTripper, "http://localhost:8080/jenkins",
+				"admin", "111e3a2f0231198855dceaff96f20540a9")
+
+			rootCmd.SetArgs([]string{"job", "search", "deploy"})
+
+			buf := new(bytes.Buffer)
+			rootCmd.SetOutput(buf)
+			_, err = rootCmd.ExecuteC()
+			Expect(err).To(BeNil())
+
+			Expect(buf.String()).To(Equal(`Name   DisplayName Type        URL
+deploy deploy      WorkflowJob job/folder/job/deploy/
 `))
 		})
 	})
@@ -113,6 +136,7 @@ var _ = Describe("job search command check", func() {
 				URL:      rootURL,
 				UserName: user,
 				Token:    password,
+				Search:   "plugin",
 			}},
 		}
 	})
@@ -132,6 +156,13 @@ var _ = Describe("job search command check", func() {
 
 			err := jobSearchOption.Check()
 			Expect(err).To(HaveOccurred())
+		})
+
+		It("search via core API, no plugin check", func() {
+			config.JenkinsServers[0].Search = ""
+
+			err := jobSearchOption.Check()
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("with pipeline-restful-api 0.2+ plugin", func() {

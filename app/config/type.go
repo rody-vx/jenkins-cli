@@ -15,6 +15,7 @@ type JenkinsServer struct {
 	ProxyAuth          string            `yaml:"proxyAuth,omitempty"`
 	InsecureSkipVerify bool              `yaml:"insecureSkipVerify,omitempty"`
 	Description        string            `yaml:"description,omitempty"`
+	Search             string            `yaml:"search,omitempty"`
 	Data               map[string]string `yaml:"data,omitempty"`
 }
 

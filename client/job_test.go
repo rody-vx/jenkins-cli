@@ -59,6 +59,28 @@ var _ = Describe("job test", func() {
 		})
 	})
 
+	Context("SearchViaAPI", func() {
+		It("finds jobs in folders by name and type", func() {
+			PrepareForSearchViaAPI(roundTripper, jobClient.URL, "", "")
+
+			result, err := jobClient.SearchViaAPI("DEP", "workflowjob", 0, 50)
+			Expect(err).To(BeNil())
+			Expect(len(result)).To(Equal(1))
+			Expect(result[0].Name).To(Equal("deploy"))
+			Expect(result[0].Type).To(Equal("WorkflowJob"))
+			Expect(result[0].URL).To(Equal("job/folder/job/deploy/"))
+		})
+
+		It("applies start and limit", func() {
+			PrepareForSearchViaAPI(roundTripper, jobClient.URL, "", "")
+
+			result, err := jobClient.SearchViaAPI("", "", 1, 1)
+			Expect(err).To(BeNil())
+			Expect(len(result)).To(Equal(1))
+			Expect(result[0].Name).To(Equal("deploy"))
+		})
+	})
+
 	Context("Build", func() {
 		It("trigger a simple job without a folder", func() {
 			jobName := "fakeJob"
@@ -456,6 +478,16 @@ var _ = Describe("test function ParseJobPath", func() {
 		Context("multi level of job name", func() {
 			BeforeEach(func() {
 				jobName = "abc def"
+			})
+
+			It("should success", func() {
+				Expect(path).To(Equal("/job/abc/job/def"))
+			})
+		})
+
+		Context("multi level of job name separate with slashes", func() {
+			BeforeEach(func() {
+				jobName = "/abc/def/"
 			})
 
 			It("should success", func() {

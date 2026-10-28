@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-version"
 	"github.com/jenkins-zh/jenkins-cli/app/cmd/common"
+	appCfg "github.com/jenkins-zh/jenkins-cli/app/config"
 	"github.com/jenkins-zh/jenkins-cli/app/i18n"
 	"github.com/jenkins-zh/jenkins-cli/client"
 	cobra_ext "github.com/linuxsuren/cobra-extension/pkg"
@@ -41,7 +42,7 @@ func init() {
 	flags.StringVarP(&jobSearchOption.Parent, "parent", "", "",
 		i18n.T("The parent of items for search"))
 	flags.StringVarP(&jobSearchOption.Plugin, "plugin", "p", "pipeline-restful-api",
-		"Search jobs base on the target plugin")
+		"Search jobs base on the target plugin. Without it, the search field (plugin | api) of the Jenkins config decides, api by default")
 
 	jobSearchOption.SetFlagWithHeaders(jobSearchCmd, "Name,DisplayName,Type,URL")
 	healthCheckRegister.Register(getCmdPath(jobSearchCmd), &jobSearchOption)
@@ -65,10 +66,13 @@ var jobSearchCmd = &cobra.Command{
 			},
 			Parent: jobSearchOption.Parent,
 		}
-		getCurrentJenkinsAndClient(&(jClient.JenkinsCore))
+		jenkins := getCurrentJenkinsAndClient(&(jClient.JenkinsCore))
 
 		var items []client.JenkinsItem
-		switch jobSearchOption.Plugin {
+		switch searchMode(cmd, jenkins) {
+		case searchModeAPI:
+			items, err = jClient.SearchViaAPI(jobSearchOption.Name, jobSearchOption.Type,
+				jobSearchOption.Start, jobSearchOption.Limit)
 		case "blueocean":
 			jobSearchOption.Columns = "Name,FullName,WeatherScore"
 			items, err = jClient.SearchViaBlue(jobSearchOption.Name, jobSearchOption.Start, jobSearchOption.Limit)
@@ -87,8 +91,30 @@ var jobSearchCmd = &cobra.Command{
 	},
 }
 
+const (
+	searchModeAPI    = "api"
+	searchModePlugin = "plugin"
+)
+
+// searchMode returns the plugin name to search with, or searchModeAPI.
+// The --plugin flag wins, then the search field of the Jenkins config (plugin | api).
+// It falls back to the core JSON API when neither is given.
+func searchMode(cmd *cobra.Command, jenkins *appCfg.JenkinsServer) string {
+	if cmd != nil && cmd.Flags().Changed("plugin") {
+		return jobSearchOption.Plugin
+	}
+	if jenkins != nil && jenkins.Search == searchModePlugin {
+		return jobSearchOption.Plugin
+	}
+	return searchModeAPI
+}
+
 // Check do the conditions check
 func (o *JobSearchOption) Check() (err error) {
+	if searchMode(nil, GetCurrentJenkinsFromOptions()) == searchModeAPI {
+		return
+	}
+
 	opt := PluginOptions{
 		Option: common.Option{RoundTripper: o.RoundTripper},
 	}

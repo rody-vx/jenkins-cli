@@ -54,6 +54,70 @@ func (q *JobClient) SearchViaBlue(name string, start, limit int) (items []Jenkin
 	return
 }
 
+// searchDepth is the folder depth that SearchViaAPI walks into
+const searchDepth = 6
+
+type apiItem struct {
+	Class       string `json:"_class"`
+	Name        string
+	DisplayName string
+	Description string
+	Buildable   bool
+	Jobs        []apiItem
+}
+
+// SearchViaAPI finds jobs by name via the Jenkins core JSON API, no plugin required
+func (q *JobClient) SearchViaAPI(name, kind string, start, limit int) (items []JenkinsItem, err error) {
+	fields := "name,displayName,description,buildable"
+	tree := fields
+	for i := 0; i < searchDepth; i++ {
+		tree = fmt.Sprintf("%s,jobs[%s]", fields, tree)
+	}
+
+	parent := ""
+	if q.Parent != "" {
+		parent = strings.TrimSuffix(strings.TrimPrefix(ParseJobPath(q.Parent), "/"), "/") + "/"
+	}
+
+	var root apiItem
+	if err = q.RequestWithData(http.MethodGet, fmt.Sprintf("/%sapi/json?tree=jobs[%s]", parent, tree),
+		nil, nil, 200, &root); err != nil {
+		return
+	}
+
+	matched := make([]JenkinsItem, 0)
+	var walk func(prefix string, list []apiItem)
+	walk = func(prefix string, list []apiItem) {
+		for _, item := range list {
+			path := fmt.Sprintf("%sjob/%s/", prefix, url.PathEscape(item.Name))
+			kindName := item.Class[strings.LastIndex(item.Class, ".")+1:]
+			if (name == "" || strings.Contains(strings.ToLower(item.Name), strings.ToLower(name))) &&
+				(kind == "" || strings.EqualFold(kind, kindName)) {
+				matched = append(matched, JenkinsItem{
+					Name:        item.Name,
+					DisplayName: item.DisplayName,
+					Description: item.Description,
+					Type:        kindName,
+					URL:         path,
+					Buildable:   item.Buildable,
+				})
+			}
+			walk(path, item.Jobs)
+		}
+	}
+	walk(parent, root.Jobs)
+
+	items = make([]JenkinsItem, 0)
+	if start < len(matched) {
+		end := len(matched)
+		if limit > 0 && start+limit < end {
+			end = start + limit
+		}
+		items = matched[start:end]
+	}
+	return
+}
+
 // Build trigger a job
 func (q *JobClient) Build(jobName string) (err error) {
 	path := ParseJobPath(jobName)
@@ -479,7 +543,10 @@ func ParseJobPath(jobName string) (path string) {
 		return
 	}
 
-	jobItems := strings.Split(jobName, " ")
+	// "folder job" and "folder/job" are both accepted
+	jobItems := strings.FieldsFunc(jobName, func(r rune) bool {
+		return r == ' ' || r == '/'
+	})
 	path = ""
 	for _, item := range jobItems {
 		path = fmt.Sprintf("%s/job/%s", path, item)

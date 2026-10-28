@@ -202,6 +202,23 @@ func PrepareOneItem(roundTripper *mhttp.MockRoundTripper, rootURL, name, kind, u
 	}
 }
 
+// PrepareForSearchViaAPI only for test
+func PrepareForSearchViaAPI(roundTripper *mhttp.MockRoundTripper, rootURL, user, token string) {
+	request, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/json", rootURL), nil)
+	response := &http.Response{
+		StatusCode: 200,
+		Request:    request,
+		Body: ioutil.NopCloser(bytes.NewBufferString(`{"jobs":[{"_class":"com.cloudbees.hudson.plugins.folder.Folder","name":"folder","displayName":"folder",` +
+			`"jobs":[{"_class":"org.jenkinsci.plugins.workflow.job.WorkflowJob","name":"deploy","displayName":"deploy","buildable":true},` +
+			`{"_class":"hudson.model.FreeStyleProject","name":"other","displayName":"other","buildable":true}]}]}`)),
+	}
+	roundTripper.EXPECT().
+		RoundTrip(NewRequestMatcher(request)).Return(response, nil)
+	if user != "" && token != "" {
+		request.SetBasicAuth(user, token)
+	}
+}
+
 // PrepareEmptyItems only for test
 func PrepareEmptyItems(roundTripper *mhttp.MockRoundTripper, rootURL, name, kind, user, token string) {
 	request, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/items/list?name=%s&type=%s&start=%d&limit=%d&parent=",
