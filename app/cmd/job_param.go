@@ -70,10 +70,11 @@ var jobParamCmd = &cobra.Command{
 						continue
 					}
 
+					params := withChoices(jclient, name, pro.ParameterDefinitions)
 					if jobParamOption.Indent {
-						data, err = json.MarshalIndent(pro.ParameterDefinitions, "", " ")
+						data, err = json.MarshalIndent(params, "", " ")
 					} else {
-						data, err = json.Marshal(pro.ParameterDefinitions)
+						data, err = json.Marshal(params)
 					}
 					break
 				}
@@ -84,4 +85,22 @@ var jobParamCmd = &cobra.Command{
 		}
 		return
 	},
+}
+
+// parameterWithChoices is a parameter definition with its selectable values
+type parameterWithChoices struct {
+	client.ParameterDefinition
+	Choices []string `json:"choices,omitempty"`
+}
+
+// withChoices attaches the selectable values to each parameter.
+// The definitions are printed without them when the values cannot be fetched.
+func withChoices(jclient *client.JobClient, name string, defs []client.ParameterDefinition) []parameterWithChoices {
+	choices, _ := jclient.GetParameterChoices(name)
+
+	params := make([]parameterWithChoices, 0, len(defs))
+	for _, def := range defs {
+		params = append(params, parameterWithChoices{ParameterDefinition: def, Choices: choices[def.Name]})
+	}
+	return params
 }

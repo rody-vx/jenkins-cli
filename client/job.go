@@ -301,6 +301,57 @@ func (q *JobClient) GetJob(name string) (job *Job, err error) {
 	return
 }
 
+// gitParameterDescriptor is the descriptor of the git-parameter plugin
+const gitParameterDescriptor = "net.uaznia.lukanus.hudson.plugins.gitparameter.GitParameterDefinition"
+
+// GetParameterChoices returns the selectable values of each parameter, keyed by the parameter name.
+// Choice parameters come from the job definition, git parameters are listed by the git-parameter plugin.
+func (q *JobClient) GetParameterChoices(name string) (choices map[string][]string, err error) {
+	path := ParseJobPath(name)
+
+	var job struct {
+		Property []struct {
+			ParameterDefinitions []struct {
+				Name    string   `json:"name"`
+				Type    string   `json:"type"`
+				Choices []string `json:"choices"`
+			} `json:"parameterDefinitions"`
+		} `json:"property"`
+	}
+	if err = q.RequestWithData(http.MethodGet,
+		fmt.Sprintf("%s/api/json?tree=property[parameterDefinitions[name,type,choices]]", path),
+		nil, nil, http.StatusOK, &job); err != nil {
+		return
+	}
+
+	choices = map[string][]string{}
+	for _, pro := range job.Property {
+		for _, def := range pro.ParameterDefinitions {
+			switch {
+			case len(def.Choices) > 0:
+				choices[def.Name] = def.Choices
+			case def.Type == "GitParameterDefinition":
+				var items struct {
+					Values []struct {
+						Value string `json:"value"`
+					} `json:"values"`
+				}
+				// the git-parameter plugin lists the values only via POST; leave the parameter out when it fails
+				if q.RequestWithData(http.MethodPost,
+					fmt.Sprintf("%s/descriptorByName/%s/fillValueItems?param=%s", path, gitParameterDescriptor,
+						url.QueryEscape(def.Name)), nil, nil, http.StatusOK, &items) == nil {
+					values := make([]string, 0, len(items.Values))
+					for _, item := range items.Values {
+						values = append(values, item.Value)
+					}
+					choices[def.Name] = values
+				}
+			}
+		}
+	}
+	return
+}
+
 // AddParameters add parameters to a Pipeline
 func (q *JobClient) AddParameters(name, parameters string) (err error) {
 	path := ParseJobPath(name)

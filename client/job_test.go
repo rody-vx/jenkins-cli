@@ -81,6 +81,19 @@ var _ = Describe("job test", func() {
 		})
 	})
 
+	Context("GetParameterChoices", func() {
+		It("lists choice and git parameter values", func() {
+			PrepareForParameterChoices(roundTripper, jobClient.URL, "/job/folder/job/deploy")
+
+			choices, err := jobClient.GetParameterChoices("folder/deploy")
+			Expect(err).To(BeNil())
+			Expect(choices).To(Equal(map[string][]string{
+				"COUNTRY":     {"KR", "US"},
+				"BRANCH_NAME": {"main", "v1"},
+			}))
+		})
+	})
+
 	Context("Build", func() {
 		It("trigger a simple job without a folder", func() {
 			jobName := "fakeJob"

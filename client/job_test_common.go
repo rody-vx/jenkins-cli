@@ -219,6 +219,39 @@ func PrepareForSearchViaAPI(roundTripper *mhttp.MockRoundTripper, rootURL, user,
 	}
 }
 
+// PrepareForParameterChoices only for test
+func PrepareForParameterChoices(roundTripper *mhttp.MockRoundTripper, rootURL, jobPath string) {
+	request, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s/api/json", rootURL, jobPath), nil)
+	response := &http.Response{
+		StatusCode: 200,
+		Request:    request,
+		Body: ioutil.NopCloser(bytes.NewBufferString(`{"property":[{},{"parameterDefinitions":[` +
+			`{"name":"COUNTRY","type":"ChoiceParameterDefinition","choices":["KR","US"]},` +
+			`{"name":"BRANCH_NAME","type":"GitParameterDefinition"},` +
+			`{"name":"MEMO","type":"StringParameterDefinition"}]}]}`)),
+	}
+	roundTripper.EXPECT().
+		RoundTrip(NewRequestMatcher(request)).Return(response, nil)
+
+	requestCrumb, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/crumbIssuer/api/json", rootURL), nil)
+	roundTripper.EXPECT().
+		RoundTrip(NewRequestMatcher(requestCrumb)).Return(&http.Response{
+		StatusCode: 200,
+		Request:    requestCrumb,
+		Body:       ioutil.NopCloser(bytes.NewBufferString(`{"crumbRequestField":"CrumbRequestField","crumb":"Crumb"}`)),
+	}, nil)
+
+	requestGit, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("%s%s/descriptorByName/%s/fillValueItems",
+		rootURL, jobPath, gitParameterDescriptor), nil)
+	requestGit.Header.Add("CrumbRequestField", "Crumb")
+	roundTripper.EXPECT().
+		RoundTrip(NewRequestMatcher(requestGit)).Return(&http.Response{
+		StatusCode: 200,
+		Request:    requestGit,
+		Body:       ioutil.NopCloser(bytes.NewBufferString(`{"values":[{"name":"main","value":"main"},{"name":"v1","value":"v1"}]}`)),
+	}, nil)
+}
+
 // PrepareEmptyItems only for test
 func PrepareEmptyItems(roundTripper *mhttp.MockRoundTripper, rootURL, name, kind, user, token string) {
 	request, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/items/list?name=%s&type=%s&start=%d&limit=%d&parent=",
