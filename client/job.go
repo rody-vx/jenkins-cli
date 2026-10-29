@@ -18,7 +18,6 @@ import (
 	httpdownloader "github.com/linuxsuren/http-downloader/pkg"
 
 	"go.uber.org/zap"
-	"moul.io/http2curl"
 )
 
 const (
@@ -471,9 +470,7 @@ func (q *JobClient) Log(jobName string, history int, start int64) (jobLog JobLog
 		NextStart: int64(0),
 	}
 
-	if curlCmd, curlErr := http2curl.GetCurlCommand(req); curlErr == nil {
-		logger.Debug("HTTP request as curl", zap.String("cmd", curlCmd.String()))
-	}
+	logCurlCommand(req)
 
 	if response, err = client.Do(req); err == nil {
 		code := response.StatusCode
@@ -589,8 +586,12 @@ func (q *JobClient) JobInputSubmit(jobName, inputID string, buildID int, abort b
 // ParseJobPath leads with slash
 func ParseJobPath(jobName string) (path string) {
 	path = jobName
-	if jobName == "" || strings.HasPrefix(jobName, "/job/") ||
-		strings.HasPrefix(jobName, "job/") {
+	if jobName == "" || strings.HasPrefix(jobName, "/job/") {
+		return
+	}
+	// some requests join the Jenkins URL and the path as strings, so keep the leading slash
+	if strings.HasPrefix(jobName, "job/") {
+		path = "/" + jobName
 		return
 	}
 

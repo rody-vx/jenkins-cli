@@ -509,6 +509,16 @@ var _ = Describe("test function ParseJobPath", func() {
 		})
 	})
 
+	Context("job name with URL path without the leading slash", func() {
+		BeforeEach(func() {
+			jobName = "job/abc/job/def/"
+		})
+
+		It("should add the leading slash", func() {
+			Expect(path).To(Equal("/job/abc/job/def/"))
+		})
+	})
+
 	Context("job name with URL path", func() {
 		BeforeEach(func() {
 			jobName = "/job/abc/job/def"

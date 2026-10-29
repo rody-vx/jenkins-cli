@@ -268,9 +268,7 @@ func (j *JenkinsCore) RequestWithResponse(method, api string, headers map[string
 
 	client := j.GetClient()
 
-	if curlCmd, curlErr := http2curl.GetCurlCommand(req); curlErr == nil {
-		logger.Debug("HTTP request as curl", zap.String("cmd", curlCmd.String()))
-	}
+	logCurlCommand(req)
 	return client.Do(req)
 }
 
@@ -303,9 +301,7 @@ func (j *JenkinsCore) Request(method, api string, headers map[string]string, pay
 		req.Header.Add(k, v)
 	}
 
-	if curlCmd, curlErr := http2curl.GetCurlCommand(req); curlErr == nil {
-		logger.Debug("HTTP request as curl", zap.String("cmd", curlCmd.String()))
-	}
+	logCurlCommand(req)
 
 	client := j.GetClient()
 	if response, err = client.Do(req); err == nil {
@@ -313,4 +309,31 @@ func (j *JenkinsCore) Request(method, api string, headers map[string]string, pay
 		data, err = ioutil.ReadAll(response.Body)
 	}
 	return
+}
+
+// credentialHeaders are masked in the debug log
+var credentialHeaders = []string{"Authorization", "Proxy-Authorization"}
+
+// logCurlCommand prints the request as a curl command in the debug log, without the credentials
+func logCurlCommand(req *http.Request) {
+	if !logger.Core().Enabled(zap.DebugLevel) {
+		return
+	}
+
+	saved := map[string][]string{}
+	for _, key := range credentialHeaders {
+		if values := req.Header.Values(key); len(values) > 0 {
+			saved[key] = values
+			req.Header.Set(key, "<masked>")
+		}
+	}
+	defer func() {
+		for key, values := range saved {
+			req.Header[key] = values
+		}
+	}()
+
+	if curlCmd, curlErr := http2curl.GetCurlCommand(req); curlErr == nil {
+		logger.Debug("HTTP request as curl", zap.String("cmd", curlCmd.String()))
+	}
 }
