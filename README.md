@@ -1,44 +1,17 @@
-# Quick start
+# Jenkins CLI (jcli)
 
-[简体中文](https://github.com/jenkins-zh/jenkins-cli/blob/master/README-zh.md)
+[jenkins-zh/jenkins-cli](https://github.com/jenkins-zh/jenkins-cli) 의 fork 입니다.
+여러 Jenkins 서버를 등록해 두고 job 검색 · 빌드 · 로그 확인 등을 명령행에서 처리합니다.
 
-## Jenkins CLI
+## 원본 대비 변경
 
+- `job search` 를 플러그인 없이 사용
+  - Jenkins 기본 JSON API 로 폴더 안까지 검색한다 (원본은 `pipeline-restful-api` 플러그인 필요)
+  - 서버 설정의 `search` 로 방식 선택: `api`(기본) · `plugin`. `-p` 옵션을 주면 플러그인 사용
+- job 이름을 `폴더/잡` 형식으로 지정 (`job/폴더/job/잡`, `폴더 잡` 형식도 그대로 지원)
+- `jcli version` · `jcli version upgrade` 가 이 저장소의 Release 를 기준으로 동작
 
-[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/jenkins-zh/jenkins-cli)
-[![](https://goreportcard.com/badge/jenkins-zh/jenkins-cli)](https://goreportcard.com/report/jenkins-zh/jenkins-cli)
-[![](http://img.shields.io/badge/godoc-reference-5272B4.svg?style=flat-square)](https://godoc.org/github.com/jenkins-zh/jenkins-cli)
-[![codecov](https://codecov.io/gh/jenkins-zh/jenkins-cli/branch/master/graph/badge.svg?token=XS8g2CjdNL)](https://codecov.io/gh/jenkins-zh/jenkins-cli)
-[![Contributors](https://img.shields.io/github/contributors/jenkins-zh/jenkins-cli.svg)](https://github.com/jenkins-zh/jenkins-cli/graphs/contributors)
-[![GitHub release](https://img.shields.io/github/release/jenkins-zh/jenkins-cli.svg?label=release)](https://github.com/jenkins-zh/jenkins-cli/releases/latest)
-![GitHub All Releases](https://img.shields.io/github/downloads/jenkins-zh/jenkins-cli/total)
-[![Docker Pulls](https://img.shields.io/docker/pulls/jenkinszh/jcli.svg)](https://hub.docker.com/r/jenkinszh/jcli/tags)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/jenkins-zh/jenkins-cli)
-[![HitCount](http://hits.dwyl.com/jenkins-zh/jenkins-cli.svg)](http://hits.dwyl.com/jenkins-zh/jenkins-cli)
-
-Jenkins CLI allows you manage your Jenkins in an easy way. No matter if you're a plugin developer, administrator or just a regular user, it is made for you!
-
-- [Features](#features)
-- [Get it](#get-it)
-- [Plugins](#plugins)
-- [Contribution](#contribution)
-- [License](#license)
-
-
-## Features
-
-* Multiple Jenkins support
-* Plugins management \(list, search, install, upload\)
-* Job management \(search, build, log\)
-* Configuration as Code support
-* Open your Jenkins with a browser
-* Restart your Jenkins
-* Connection with proxy support
-
-## Get it
-
-> 이 저장소는 [jenkins-zh/jenkins-cli](https://github.com/jenkins-zh/jenkins-cli) 의 fork 입니다.
-> 원본 대비 변경: 플러그인 없이 `job search` (설정 `search: plugin | api`, 기본 `api`), `폴더/잡` 형식 job 이름 지원
+## 설치
 
 [Homebrew](https://brew.sh/) (macOS, Linux) 로만 배포합니다.
 
@@ -52,40 +25,49 @@ brew install rody-vx/tap/jcli
 
 공식 `jenkins-cli` 와 같은 `jcli` 바이너리를 설치하므로, 설치되어 있다면 먼저 `brew uninstall jenkins-cli` 로 제거합니다.
 
-## Get started
+## 설정
 
-Read the [official document](http://jcli.jenkins-zh.cn/) for more details on how to use `jcli`.
+Jenkins 사용자 설정에서 API Token 을 발급한 뒤 서버를 등록합니다. 설정은 `~/.jenkins-cli.yaml` 에 저장됩니다.
 
-Or, you can take [a live interactive course](https://www.katacoda.com/jenkins-zh/scenarios/course-jcli) of Jenkins CLI.
-
-## Plugins
-
-Jenkins CLI could have more features by installing a plugin for it. You can install a plugin by the following command:
-
-```text
-jcli config plugin fetch
-jcli config plugin install account
+```shell
+jcli config add -n qa --url https://jenkins.example.com -u <사용자> -t <API 토큰>
+jcli config list
+jcli config select          # 기본 서버 변경
+jcli -j qa job history ...  # 이번 명령만 다른 서버로
 ```
 
-All official plugins could be found at [here](https://github.com/jenkins-zh/jcli-plugins).
+```yaml
+current: qa
+jenkins_servers:
+- name: qa
+  url: https://jenkins.example.com
+  username: <사용자>
+  token: <API 토큰>
+  search: api   # 생략하면 api
+```
 
-## Contribution
+토큰이 평문으로 저장되므로 `chmod 600 ~/.jenkins-cli.yaml` 을 권장합니다.
 
-If you're interested in this project. Please go through the [contribution guide](https://github.com/jenkins-zh/jenkins-cli/tree/cb3d358df4699db11b681eb0ab9adffbfb8a7bd4/CONTRIBUTING.md). Any contributions are welcome.
+## 사용 예
 
-Thanks to JetBrains for giving us the open source licence.  
-[![goland.svg](docs/book/.gitbook/assets/goland.svg)](https://www.jetbrains.com/?from=jenkins-cli)
+```shell
+jcli job search deploy                    # 이름에 deploy 가 들어간 job
+jcli job search --type Folder             # 폴더만
+jcli job param 폴더/잡                     # 파라미터 확인
+jcli job build 폴더/잡 -b -l               # 확인 없이 빌드하고 로그 따라가기
+jcli job build 폴더/잡 -b --param-entry BRANCH=main
+jcli job history 폴더/잡
+jcli job log 폴더/잡 -w -e                 # 로그를 따라가다 실패하면 exit 1
+jcli job stop 폴더/잡 <빌드번호> -b
+```
 
-## Similar Projects
+검색 결과의 `URL` 값(`job/폴더/job/잡/`)도 job 이름으로 그대로 쓸 수 있습니다.
 
-There're a few similar projects that you might be interested in:
+## 릴리즈
 
-* [jenni](https://github.com/m-sureshraj/jenni) is a Jenkins Personal Assistant
-* [jenkins-job-cli](https://github.com/gocruncher/jenkins-job-cli) Easy way to run Jenkins job from the Command Line
-
-## Stargazers over time
-
-[![Star History Chart](https://api.star-history.com/svg?repos=jenkins-zh/jenkins-cli&amp;type=Date)](https://star-history.com/#jenkins-zh/jenkins-cli&amp;Date)
+`v*` 태그를 push 하면 GitHub Actions 가 macOS · Linux(arm64, amd64) 바이너리를 빌드해 Release 에 올립니다.
+이후 [rody-vx/homebrew-tap](https://github.com/rody-vx/homebrew-tap) 의 `Formula/jcli.rb` 에서 `version` · `url` · `sha256` 을 갱신합니다.
 
 ## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjenkins-zh%2Fjenkins-cli.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjenkins-zh%2Fjenkins-cli?ref=badge_large)
+
+[MIT](LICENSE)
