@@ -141,9 +141,6 @@ test:
 #	go test ./app/i18n -v -count=1
 #	go test ./app/cmd -v -count=1
 
-test-release:
-	goreleaser release --rm-dist --snapshot --skip-publish
-
 dep:
 	go get github.com/AlecAivazis/survey/v2
 	go get github.com/spf13/cobra
@@ -158,9 +155,6 @@ gettext:
 
 gen-data:
 	cd app/i18n && go-bindata -o bindata.go -pkg i18n jcli/zh_CN/LC_MESSAGES/
-
-image:
-	docker build . -t jenkinszh/$(NAME)
 
 setup-env-centos:
 	yum install make golang -y
