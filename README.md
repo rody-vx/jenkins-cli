@@ -10,6 +10,7 @@
   - 서버 설정의 `search` 로 방식 선택: `api`(기본) · `plugin`. `-p` 옵션을 주면 플러그인 사용
 - job 이름을 `폴더/잡` 형식으로 지정 (`job/폴더/job/잡`, `폴더 잡` 형식도 그대로 지원)
 - `jcli version` · `jcli version upgrade` 가 이 저장소의 Release 를 기준으로 동작
+- `job config get` · `job config update` 로 플러그인 없이 모든 종류의 job 설정(`config.xml`)을 조회·교체
 
 ## 설치
 
@@ -59,6 +60,8 @@ jcli job build 폴더/잡 -b --param-entry BRANCH=main
 jcli job history 폴더/잡
 jcli job log 폴더/잡 -w -e                 # 로그를 따라가다 실패하면 exit 1
 jcli job stop 폴더/잡 <빌드번호> -b
+jcli job config get 폴더/잡 -f config.xml  # 설정 저장 (권한 600), -f 없으면 표준 출력
+jcli job config update 폴더/잡 -f config.xml  # 설정 교체 (-b 면 확인 생략)
 ```
 
 검색 결과의 `URL` 값(`job/폴더/job/잡/`)도 job 이름으로 그대로 쓸 수 있습니다.

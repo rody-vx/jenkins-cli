@@ -415,6 +415,35 @@ func (q *JobClient) UpdatePipeline(name, script string) (err error) {
 	return
 }
 
+// configXMLAPI returns the config.xml path of a job
+func configXMLAPI(name string) string {
+	return fmt.Sprintf("%s/config.xml", strings.TrimRight(ParseJobPath(name), "/"))
+}
+
+// GetConfig returns the config.xml of a job as it is
+func (q *JobClient) GetConfig(name string) (config string, err error) {
+	var (
+		statusCode int
+		data       []byte
+	)
+	if statusCode, data, err = q.Request(http.MethodGet, configXMLAPI(name), nil, nil); err != nil {
+		return
+	}
+	if statusCode != http.StatusOK {
+		err = q.ErrorHandle(statusCode, data)
+		return
+	}
+	config = string(data)
+	return
+}
+
+// UpdateConfig replaces the config.xml of a job
+func (q *JobClient) UpdateConfig(name, config string) (err error) {
+	headers := map[string]string{"Content-Type": "application/xml; charset=UTF-8"}
+	_, err = q.RequestWithoutData(http.MethodPost, configXMLAPI(name), headers, strings.NewReader(config), http.StatusOK)
+	return
+}
+
 // GetHistory returns the build history of a job
 func (q *JobClient) GetHistory(name string) (builds []*JobBuild, err error) {
 	var job *Job

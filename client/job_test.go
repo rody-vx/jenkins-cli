@@ -94,6 +94,73 @@ var _ = Describe("job test", func() {
 		})
 	})
 
+	Context("GetConfig", func() {
+		It("returns config.xml as it is, for every job path format", func() {
+			config := "<?xml version='1.1' encoding='UTF-8'?>\n<flow-definition/>\n"
+			for _, name := range []string{"folder/deploy", "job/folder/job/deploy/"} {
+				request, _ := http.NewRequest(http.MethodGet, jobClient.URL+"/job/folder/job/deploy/config.xml", nil)
+				roundTripper.EXPECT().RoundTrip(NewRequestMatcher(request)).Return(&http.Response{
+					StatusCode: 200,
+					Request:    request,
+					Body:       ioutil.NopCloser(bytes.NewBufferString(config)),
+				}, nil)
+
+				result, err := jobClient.GetConfig(name)
+				Expect(err).To(BeNil())
+				Expect(result).To(Equal(config))
+			}
+		})
+
+		It("returns an error when the user has no permission", func() {
+			request, _ := http.NewRequest(http.MethodGet, jobClient.URL+"/job/deploy/config.xml", nil)
+			roundTripper.EXPECT().RoundTrip(NewRequestMatcher(request)).Return(&http.Response{
+				StatusCode: 403,
+				Request:    request,
+				Body:       ioutil.NopCloser(bytes.NewBufferString("")),
+			}, nil)
+
+			result, err := jobClient.GetConfig("deploy")
+			Expect(err).To(HaveOccurred())
+			Expect(result).To(BeEmpty())
+		})
+	})
+
+	Context("UpdateConfig", func() {
+		prepareCrumb := func() {
+			requestCrumb, _ := http.NewRequest(http.MethodGet, jobClient.URL+"/crumbIssuer/api/json", nil)
+			roundTripper.EXPECT().RoundTrip(NewRequestMatcher(requestCrumb)).Return(&http.Response{
+				StatusCode: 200,
+				Request:    requestCrumb,
+				Body:       ioutil.NopCloser(bytes.NewBufferString(`{"crumbRequestField":"CrumbRequestField","crumb":"Crumb"}`)),
+			}, nil)
+		}
+
+		It("posts the file content as XML with the crumb", func() {
+			config := "<flow-definition/>"
+			prepareCrumb()
+			roundTripper.EXPECT().RoundTrip(gomock.Any()).DoAndReturn(func(req *http.Request) (*http.Response, error) {
+				body, _ := ioutil.ReadAll(req.Body)
+				Expect(req.Method).To(Equal(http.MethodPost))
+				Expect(req.URL.Path).To(Equal("/job/folder/job/deploy/config.xml"))
+				Expect(req.Header.Get("Content-Type")).To(Equal("application/xml; charset=UTF-8"))
+				Expect(req.Header.Get("CrumbRequestField")).To(Equal("Crumb"))
+				Expect(string(body)).To(Equal(config))
+				return &http.Response{StatusCode: 200, Request: req, Body: ioutil.NopCloser(bytes.NewBufferString(""))}, nil
+			})
+
+			Expect(jobClient.UpdateConfig("folder/deploy", config)).To(Succeed())
+		})
+
+		It("returns an error when Jenkins rejects the config", func() {
+			prepareCrumb()
+			roundTripper.EXPECT().RoundTrip(gomock.Any()).DoAndReturn(func(req *http.Request) (*http.Response, error) {
+				return &http.Response{StatusCode: 500, Request: req, Body: ioutil.NopCloser(bytes.NewBufferString(""))}, nil
+			})
+
+			Expect(jobClient.UpdateConfig("deploy", "<invalid")).To(HaveOccurred())
+		})
+	})
+
 	Context("Build", func() {
 		It("trigger a simple job without a folder", func() {
 			jobName := "fakeJob"
