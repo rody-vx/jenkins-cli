@@ -351,26 +351,27 @@ func (q *JobClient) GetParameterChoices(name string) (choices map[string][]strin
 	return
 }
 
-// AddParameters add parameters to a Pipeline
+// AddParameters adds parameters to a job by editing its config.xml.
+// parameters is a JSON array (or one object) of {"name","value","desc","type","choices"}
 func (q *JobClient) AddParameters(name, parameters string) (err error) {
-	path := ParseJobPath(name)
-	api := fmt.Sprintf("%s/restFul/addParameter", path)
-
-	formData := url.Values{
-		"params": {parameters},
+	var specs []ParameterSpec
+	if specs, err = ParseParameterSpecs(parameters); err != nil {
+		return
 	}
-	payload := strings.NewReader(formData.Encode())
-	_, err = q.RequestWithoutData(http.MethodPost, api, map[string]string{httpdownloader.ContentType: httpdownloader.ApplicationForm}, payload, http.StatusOK)
-	return
+	return q.editConfig(name, func(config string) (string, error) {
+		return addParametersToConfig(config, specs)
+	})
 }
 
-// RemoveParameters add parameters to a Pipeline
+// RemoveParameters removes parameters from a job by editing its config.xml. parameters is like "name,age"
 func (q *JobClient) RemoveParameters(name, parameters string) (err error) {
-	path := ParseJobPath(name)
-	api := fmt.Sprintf("%s/restFul/removeParameter?params=%s", path, parameters)
-
-	_, err = q.RequestWithoutData(http.MethodPost, api, nil, nil, http.StatusOK)
-	return
+	names := splitParameterNames(parameters)
+	if len(names) == 0 {
+		return fmt.Errorf("no parameter name is given")
+	}
+	return q.editConfig(name, func(config string) (string, error) {
+		return removeParametersFromConfig(config, names)
+	})
 }
 
 // editConfig reads the config.xml of a job, changes it and saves it back

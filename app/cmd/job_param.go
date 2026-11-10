@@ -28,9 +28,10 @@ func init() {
 	flags := jobParamCmd.Flags()
 	flags.BoolVarP(&jobParamOption.Indent, "indent", "", false, "Output with indent")
 	flags.StringVarP(&jobParamOption.Add, "add", "", "",
-		`Add parameters into the Pipeline. Example data: [{"name":"name","value":"rick","desc":"this is a name"}]`)
+		`Add parameters into the job. type is one of string(default), text, boolean, choice. Example data: `+
+			`[{"name":"name","value":"rick","desc":"this is a name"},{"name":"env","type":"choice","choices":["dev","qa"]}]`)
 	flags.StringVarP(&jobParamOption.Remove, "remove", "", "",
-		`Remove parameters from the Pipeline. Example data: name,age`)
+		`Remove parameters from the job. Example data: name,age`)
 	jobParamOption.SetFlag(jobParamCmd)
 }
 

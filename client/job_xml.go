@@ -1,10 +1,12 @@
 package client
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -14,6 +16,7 @@ import (
 const (
 	cpsFlowDefinition    = "org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition"
 	cpsScmFlowDefinition = "org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition"
+	parametersProperty   = "hudson.model.ParametersDefinitionProperty"
 )
 
 // xmlNode 는 config.xml 요소와 원문에서의 위치
@@ -96,6 +99,11 @@ func escapeXMLText(s string) string {
 	).Replace(s)
 }
 
+// escapeXMLValue 는 한 줄로 넣을 값을 이스케이프한다. appendChild 가 줄마다 들여쓰기를 붙이므로 줄바꿈도 문자 참조로 바꾼다
+func escapeXMLValue(s string) string {
+	return strings.ReplaceAll(escapeXMLText(s), "\n", "&#xA;")
+}
+
 // scriptPlaceholder 는 appendChild 의 들여쓰기가 스크립트 본문에 붙지 않도록, 요소를 넣은 뒤에 본문으로 바꾸는 자리
 const scriptPlaceholder = "\x00jcli-script\x00"
 
@@ -125,6 +133,21 @@ func appendChild(doc string, parent *xmlNode, elem string) string {
 		return doc[:parent.InnerStart] + "\n" + body + "\n" + indent + doc[parent.InnerEnd:]
 	}
 	return doc[:pos] + "\n" + body + doc[pos:]
+}
+
+// removeNode 는 요소를 앞쪽 들여쓰기·줄바꿈과 함께 지운다
+func removeNode(doc string, node *xmlNode) string {
+	start := node.Start
+	for start > 0 && (doc[start-1] == ' ' || doc[start-1] == '\t') {
+		start--
+	}
+	if start > 0 && doc[start-1] == '\n' {
+		start--
+		if start > 0 && doc[start-1] == '\r' {
+			start--
+		}
+	}
+	return doc[:start] + doc[node.End:]
 }
 
 // replaceInner 는 요소의 내용을 바꾼다
@@ -198,4 +221,169 @@ func replacePipelineScript(config, script string) (result string, err error) {
 		result = appendChild(config, definition, "<script>"+scriptPlaceholder+"</script>")
 	}
 	return strings.Replace(result, scriptPlaceholder, escaped, 1), nil
+}
+
+// ParameterSpec 은 job param --add 로 받는 파라미터
+type ParameterSpec struct {
+	Name    string   `json:"name"`
+	Value   string   `json:"value"`
+	Desc    string   `json:"desc"`
+	Type    string   `json:"type"`
+	Choices []string `json:"choices"`
+}
+
+// ParseParameterSpecs 는 --add 의 JSON(배열 또는 객체 하나)을 읽는다
+func ParseParameterSpecs(data string) (specs []ParameterSpec, err error) {
+	data = strings.TrimSpace(data)
+	if strings.HasPrefix(data, "{") {
+		var spec ParameterSpec
+		err = json.Unmarshal([]byte(data), &spec)
+		specs = []ParameterSpec{spec}
+	} else {
+		err = json.Unmarshal([]byte(data), &specs)
+	}
+	if err != nil {
+		err = fmt.Errorf("invalid parameters: %v", err)
+	}
+	return
+}
+
+// parameterXML 은 파라미터 정의 요소를 만든다
+func (p ParameterSpec) parameterXML() (elem string, err error) {
+	name := strings.TrimSpace(p.Name)
+	if name == "" {
+		return "", fmt.Errorf("parameter name is required")
+	}
+	lines := []string{
+		"<name>" + escapeXMLValue(name) + "</name>",
+		"<description>" + escapeXMLValue(p.Desc) + "</description>",
+	}
+
+	var class string
+	switch strings.ToLower(strings.TrimSuffix(p.Type, "ParameterDefinition")) {
+	case "", "string":
+		class = "hudson.model.StringParameterDefinition"
+		lines = append(lines, "<defaultValue>"+escapeXMLValue(p.Value)+"</defaultValue>", "<trim>false</trim>")
+	case "text":
+		class = "hudson.model.TextParameterDefinition"
+		lines = append(lines, "<defaultValue>"+escapeXMLValue(p.Value)+"</defaultValue>", "<trim>false</trim>")
+	case "boolean", "bool":
+		class = "hudson.model.BooleanParameterDefinition"
+		value := false
+		if p.Value != "" {
+			if value, err = strconv.ParseBool(p.Value); err != nil {
+				return "", fmt.Errorf("parameter %s: value of boolean must be true or false", name)
+			}
+		}
+		lines = append(lines, fmt.Sprintf("<defaultValue>%t</defaultValue>", value))
+	case "choice":
+		class = "hudson.model.ChoiceParameterDefinition"
+		if len(p.Choices) == 0 {
+			return "", fmt.Errorf("parameter %s: choices is required for choice", name)
+		}
+		lines = append(lines, "<choices class=\"java.util.Arrays$ArrayList\">", "  <a class=\"string-array\">")
+		for _, choice := range p.Choices {
+			lines = append(lines, "    <string>"+escapeXMLValue(choice)+"</string>")
+		}
+		lines = append(lines, "  </a>", "</choices>")
+	default:
+		return "", fmt.Errorf("parameter %s: unsupported type %s, use string, text, boolean or choice", name, p.Type)
+	}
+
+	elem = "<" + class + ">\n  " + strings.Join(lines, "\n  ") + "\n</" + class + ">"
+	return
+}
+
+// parameterDefinitions 는 파라미터 정의 목록 요소와 그 상위 property 를 찾는다
+func parameterDefinitions(root *xmlNode) (property, definitions *xmlNode) {
+	properties := root.child("properties")
+	if properties == nil {
+		return
+	}
+	if property = properties.child(parametersProperty); property != nil {
+		definitions = property.child("parameterDefinitions")
+	}
+	return
+}
+
+func parameterNode(definitions *xmlNode, name string) *xmlNode {
+	if definitions == nil {
+		return nil
+	}
+	for _, def := range definitions.Children {
+		if n := def.child("name"); n != nil && strings.TrimSpace(n.Text) == name {
+			return def
+		}
+	}
+	return nil
+}
+
+// addParametersToConfig 는 config.xml 에 파라미터를 추가한다. 같은 이름이 이미 있으면 거부한다
+func addParametersToConfig(config string, specs []ParameterSpec) (result string, err error) {
+	result = config
+	for _, spec := range specs {
+		var elem string
+		if elem, err = spec.parameterXML(); err != nil {
+			return
+		}
+
+		var root *xmlNode
+		if root, err = parseXMLNodes(result); err != nil {
+			return
+		}
+		property, definitions := parameterDefinitions(root)
+		if parameterNode(definitions, strings.TrimSpace(spec.Name)) != nil {
+			return "", fmt.Errorf("parameter %s already exists", spec.Name)
+		}
+
+		switch {
+		case definitions != nil:
+			result = appendChild(result, definitions, elem)
+		case property != nil:
+			result = appendChild(result, property, "<parameterDefinitions>\n  "+
+				strings.ReplaceAll(elem, "\n", "\n  ")+"\n</parameterDefinitions>")
+		default:
+			properties := root.child("properties")
+			if properties == nil {
+				return "", fmt.Errorf("cannot find the properties of the job in config.xml")
+			}
+			result = appendChild(result, properties, "<"+parametersProperty+">\n  <parameterDefinitions>\n    "+
+				strings.ReplaceAll(elem, "\n", "\n    ")+"\n  </parameterDefinitions>\n</"+parametersProperty+">")
+		}
+	}
+	return
+}
+
+// removeParametersFromConfig 는 config.xml 에서 파라미터를 지운다. 없는 이름이 있으면 거부한다.
+// 파라미터가 하나도 남지 않으면 Jenkins 화면에서 끈 것처럼 파라미터 설정 자체를 지운다
+func removeParametersFromConfig(config string, names []string) (result string, err error) {
+	result = config
+	for _, name := range names {
+		var root *xmlNode
+		if root, err = parseXMLNodes(result); err != nil {
+			return
+		}
+		property, definitions := parameterDefinitions(root)
+		node := parameterNode(definitions, name)
+		if node == nil {
+			return "", fmt.Errorf("parameter %s does not exist", name)
+		}
+
+		if len(definitions.Children) == 1 {
+			result = removeNode(result, property)
+		} else {
+			result = removeNode(result, node)
+		}
+	}
+	return
+}
+
+// splitParameterNames 는 "a, b,c" 형식의 이름 목록을 나눈다
+func splitParameterNames(names string) (result []string) {
+	for _, name := range strings.Split(names, ",") {
+		if name = strings.TrimSpace(name); name != "" {
+			result = append(result, name)
+		}
+	}
+	return
 }

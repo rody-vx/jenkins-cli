@@ -11,9 +11,10 @@
 - job 이름을 `폴더/잡` 형식으로 지정 (`job/폴더/job/잡`, `폴더 잡` 형식도 그대로 지원)
 - `jcli version` · `jcli version upgrade` 가 이 저장소의 Release 를 기준으로 동작
 - `job config get` · `job config update` 로 플러그인 없이 모든 종류의 job 설정(`config.xml`)을 조회·교체
-- `job edit` 을 플러그인 없이 사용 (원본은 `pipeline-restful-api` 플러그인 필요)
-  - `config.xml` 에서 파이프라인 스크립트 부분만 고쳐 교체한다
+- `job edit` · `job param --add/--remove` 를 플러그인 없이 사용 (원본은 `pipeline-restful-api` 플러그인 필요)
+  - `config.xml` 에서 파이프라인 스크립트 · 파라미터 부분만 고쳐 교체한다
   - `job edit` 은 스크립트를 job 에 직접 넣는 Pipeline job 만 지원 (SCM 의 Jenkinsfile 을 쓰는 job 은 저장소에서 수정)
+  - 파라미터 종류는 `string`(기본) · `text` · `boolean` · `choice`
 - `job create` 에 `폴더/하위폴더/잡` 경로 지원
 
 ## 설치
@@ -59,6 +60,8 @@ jenkins_servers:
 jcli job search deploy                    # 이름에 deploy 가 들어간 job
 jcli job search --type Folder             # 폴더만
 jcli job param 폴더/잡                     # 파라미터 확인
+jcli job param 폴더/잡 --add '[{"name":"ENV","type":"choice","choices":["dev","qa"]}]'
+jcli job param 폴더/잡 --remove ENV,DEBUG
 jcli job edit 폴더/잡                      # 파이프라인 스크립트를 에디터로 수정 (-f 파일, -s 스크립트로 교체)
 jcli job build 폴더/잡 -b -l               # 확인 없이 빌드하고 로그 따라가기
 jcli job build 폴더/잡 -b --param-entry BRANCH=main

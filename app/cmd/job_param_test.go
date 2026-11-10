@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/rody-vx/jenkins-cli/client"
 
@@ -95,6 +96,64 @@ var _ = Describe("job search command", func() {
 			Expect(err).To(BeNil())
 
 			Expect(buf.String()).To(Equal("[\n {\n  \"Description\": \"\",\n  \"name\": \"name\",\n  \"Type\": \"StringParameterDefinition\",\n  \"value\": \"\",\n  \"DefaultParameterValue\": {\n   \"Description\": \"\",\n   \"Value\": \"jake\"\n  }\n }\n]\n"))
+		})
+
+		Context("add or remove parameters via config.xml", func() {
+			const paramsXML = `  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>A</name>
+          <description>desc</description>
+          <defaultValue>1</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+`
+			var (
+				emptyConfig  string
+				paramsConfig string
+			)
+
+			BeforeEach(func() {
+				data, err := GenerateSampleConfig()
+				Expect(err).To(BeNil())
+				Expect(ioutil.WriteFile(rootOptions.ConfigFile, data, 0664)).To(Succeed())
+
+				emptyConfig = client.SamplePipelineConfig("echo 1")
+				paramsConfig = strings.Replace(emptyConfig, "  <properties/>\n", paramsXML, 1)
+			})
+
+			It("adds a parameter", func() {
+				client.PrepareForGetJobConfig(roundTripper, rootURL, "/job/fake", emptyConfig, username, token)
+				client.PrepareForUpdateJobConfig(roundTripper, rootURL, "/job/fake", paramsConfig, username, token)
+				client.PrepareForGetJob(roundTripper, rootURL, "fake", username, token)
+
+				rootCmd.SetArgs([]string{"job", "param", "fake", "--add", `[{"name":"A","value":"1","desc":"desc"}]`})
+				_, err := rootCmd.ExecuteC()
+				Expect(err).To(BeNil())
+			})
+
+			It("removes a parameter", func() {
+				client.PrepareForGetJobConfig(roundTripper, rootURL, "/job/fake", paramsConfig, username, token)
+				client.PrepareForUpdateJobConfig(roundTripper, rootURL, "/job/fake",
+					strings.Replace(emptyConfig, "  <properties/>\n", "  <properties>\n  </properties>\n", 1), username, token)
+				client.PrepareForGetJob(roundTripper, rootURL, "fake", username, token)
+
+				rootCmd.SetArgs([]string{"job", "param", "fake", "--remove", "A", "--add", ""})
+				_, err := rootCmd.ExecuteC()
+				Expect(err).To(BeNil())
+			})
+
+			It("fails without saving when the parameter does not exist", func() {
+				client.PrepareForGetJobConfig(roundTripper, rootURL, "/job/fake", emptyConfig, username, token)
+
+				rootCmd.SetArgs([]string{"job", "param", "fake", "--remove", "NONE", "--add", ""})
+				_, err := rootCmd.ExecuteC()
+				Expect(err).To(HaveOccurred())
+			})
 		})
 	})
 })
