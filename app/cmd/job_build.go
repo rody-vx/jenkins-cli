@@ -50,7 +50,7 @@ func init() {
 	jobBuildCmd.Flags().StringArrayVar(&jobBuildOption.ParamFilePathArray, "param-file", nil,
 		i18n.T("Parameters of the job which is file path, for example: --param-file name=filename"))
 	jobBuildCmd.Flags().BoolVarP(&jobBuildOption.Wait, "wait", "", false,
-		i18n.T("If you want to wait for the build ID from Jenkins. You need to install plugin pipeline-restful-api first"))
+		i18n.T("If you want to wait for the build ID from Jenkins. It works only for the job which has parameters"))
 	jobBuildCmd.Flags().IntVarP(&jobBuildOption.WaitTime, "wait-timeout", "", 60,
 		i18n.T("The timeout of seconds when you wait for the build ID"))
 	jobBuildCmd.Flags().IntVarP(&jobBuildOption.WaitInterval, "wait-interval", "", 10,

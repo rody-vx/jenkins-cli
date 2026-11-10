@@ -373,6 +373,18 @@ func (q *JobClient) RemoveParameters(name, parameters string) (err error) {
 	return
 }
 
+// editConfig reads the config.xml of a job, changes it and saves it back
+func (q *JobClient) editConfig(name string, edit func(config string) (string, error)) (err error) {
+	var config string
+	if config, err = q.GetConfig(name); err != nil {
+		return
+	}
+	if config, err = edit(config); err != nil {
+		return
+	}
+	return q.UpdateConfig(name, config)
+}
+
 // GetJobTypeCategories returns all categories of jobs
 func (q *JobClient) GetJobTypeCategories() (jobCategories []JobCategory, err error) {
 	var (
@@ -395,24 +407,20 @@ func (q *JobClient) GetJobTypeCategories() (jobCategories []JobCategory, err err
 	return
 }
 
-// GetPipeline return the pipeline object
+// GetPipeline returns the pipeline script of a job from its config.xml
 func (q *JobClient) GetPipeline(name string) (pipeline *Pipeline, err error) {
-	path := ParseJobPath(name)
-	api := fmt.Sprintf("%s/restFul", path)
-	err = q.RequestWithData(http.MethodGet, api, nil, nil, http.StatusOK, &pipeline)
+	var config string
+	if config, err = q.GetConfig(name); err == nil {
+		pipeline, err = pipelineScriptFromConfig(config)
+	}
 	return
 }
 
-// UpdatePipeline updates the pipeline script
+// UpdatePipeline replaces the pipeline script in the config.xml of a job
 func (q *JobClient) UpdatePipeline(name, script string) (err error) {
-	formData := url.Values{}
-	formData.Add("script", script)
-
-	path := ParseJobPath(name)
-	api := fmt.Sprintf("%s/restFul/update?%s", path, formData.Encode())
-
-	_, err = q.RequestWithoutData(http.MethodPost, api, nil, nil, http.StatusOK)
-	return
+	return q.editConfig(name, func(config string) (string, error) {
+		return replacePipelineScript(config, script)
+	})
 }
 
 // configXMLAPI returns the config.xml path of a job

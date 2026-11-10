@@ -426,31 +426,45 @@ func PrepareForInstallPluginWithCode(roundTripper *mhttp.MockRoundTripper,
 	return
 }
 
-// PrepareForPipelineJob only for test
-func PrepareForPipelineJob(roundTripper *mhttp.MockRoundTripper, rootURL, user, passwd string) (
-	request *http.Request, response *http.Response) {
-	request, _ = http.NewRequest(http.MethodGet, fmt.Sprintf("%s/job/test/restFul", rootURL), nil)
-	response = &http.Response{
+// SamplePipelineConfig is a config.xml of a pipeline job, only for test
+func SamplePipelineConfig(script string) string {
+	return "<?xml version='1.1' encoding='UTF-8'?>\n<flow-definition plugin=\"workflow-job@1.0\">\n" +
+		"  <properties/>\n" +
+		"  <definition class=\"org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition\" plugin=\"workflow-cps@1.0\">\n" +
+		"    <script>" + script + "</script>\n    <sandbox>true</sandbox>\n  </definition>\n</flow-definition>"
+}
+
+// PrepareForGetJobConfig only for test
+func PrepareForGetJobConfig(roundTripper *mhttp.MockRoundTripper, rootURL, jobPath, config, user, passwd string) {
+	request, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s/config.xml", rootURL, jobPath), nil)
+	response := &http.Response{
 		StatusCode: 200,
 		Request:    request,
-		Body:       ioutil.NopCloser(bytes.NewBufferString(`{"type":null,"displayName":null,"script":"script","sandbox":true}`)),
+		Body:       ioutil.NopCloser(bytes.NewBufferString(config)),
 	}
 	roundTripper.EXPECT().
 		RoundTrip(NewRequestMatcher(request)).Return(response, nil)
-
 	if user != "" && passwd != "" {
 		request.SetBasicAuth(user, passwd)
 	}
-	return
+}
+
+// PrepareForUpdateJobConfig only for test
+func PrepareForUpdateJobConfig(roundTripper *mhttp.MockRoundTripper, rootURL, jobPath, config, user, passwd string) {
+	request, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("%s%s/config.xml", rootURL, jobPath), bytes.NewBufferString(config))
+	request.Header.Add("Content-Type", "application/xml; charset=UTF-8")
+	PrepareCommonPost(request, "", roundTripper, user, passwd, rootURL)
+}
+
+// PrepareForPipelineJob only for test
+func PrepareForPipelineJob(roundTripper *mhttp.MockRoundTripper, rootURL, user, passwd string) {
+	PrepareForGetJobConfig(roundTripper, rootURL, "/job/test", SamplePipelineConfig("script"), user, passwd)
 }
 
 // PrepareForUpdatePipelineJob only for test
 func PrepareForUpdatePipelineJob(roundTripper *mhttp.MockRoundTripper, rootURL, script, user, password string) {
-	formData := url.Values{}
-	formData.Add("script", script)
-	request, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/job/test/restFul/update?%s", rootURL, formData.Encode()), nil)
-	PrepareCommonPost(request, "", roundTripper, user, password, rootURL)
-	return
+	PrepareForGetJobConfig(roundTripper, rootURL, "/job/test", SamplePipelineConfig("old"), user, password)
+	PrepareForUpdateJobConfig(roundTripper, rootURL, "/job/test", SamplePipelineConfig(script), user, password)
 }
 
 // PrepareForCreatePipelineJob only for test
