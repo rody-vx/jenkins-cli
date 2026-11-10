@@ -68,6 +68,24 @@ var _ = Describe("job create command", func() {
 			Expect(err).To(BeNil())
 		})
 
+		It("create a job in nested folders", func() {
+			client.PrepareForCreatePipelineJobInFolder(roundTripper, "http://localhost:8080/jenkins", "admin", "111e3a2f0231198855dceaff96f20540a9", jobPayload, "a/b")
+
+			rootCmd.SetArgs([]string{"job", "create", "a/b/" + jobPayload.Name, "--type", jobPayload.Mode})
+			_, err = rootCmd.ExecuteC()
+			Expect(err).To(BeNil())
+		})
+
+		It("create a job in nested folders by copy way", func() {
+			jobPayload.From = "/x/y/another-one"
+			jobPayload.Mode = "copy"
+			client.PrepareForCreatePipelineJobInFolder(roundTripper, "http://localhost:8080/jenkins", "admin", "111e3a2f0231198855dceaff96f20540a9", jobPayload, "a/b")
+
+			rootCmd.SetArgs([]string{"job", "create", "job/a/job/b/job/" + jobPayload.Name, "--copy", "x/y/another-one"})
+			_, err = rootCmd.ExecuteC()
+			Expect(err).To(BeNil())
+		})
+
 		It("create a job by copy way", func() {
 			jobPayload.From = "another-one"
 			jobPayload.Mode = "copy"

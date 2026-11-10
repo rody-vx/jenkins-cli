@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/rody-vx/jenkins-cli/app/i18n"
 	"net/http"
 
@@ -40,18 +41,28 @@ var jobCreateCmd = &cobra.Command{
 		}
 		getCurrentJenkinsAndClientOrDie(&(jclient.JenkinsCore))
 
+		// "a/b/job" 처럼 폴더 경로가 붙으면 상위 폴더에 job 이름만 넘겨 생성한다
+		parent, name := client.SplitJobName(jobName)
+		if name == "" {
+			return fmt.Errorf("invalid job name: %q", jobName)
+		}
+
 		var createMode string
 		if createMode, err = jobCreateOption.getCreateMode(jclient); err == nil {
 			payload := client.CreateJobPayload{
-				Name: jobName,
+				Name: name,
 				Mode: createMode,
-				From: jobCreateOption.Copy,
 			}
 
 			if jobCreateOption.Copy != "" {
 				payload.Mode = "copy"
+				payload.From = client.JobFullName(jobCreateOption.Copy)
+				if parent != "" {
+					// 폴더 안에서는 from 이 상대 경로로 해석되므로 절대 경로로 넘긴다
+					payload.From = "/" + payload.From
+				}
 			}
-			err = jclient.Create(payload)
+			err = jclient.CreateJobInFolder(payload, parent)
 		}
 		return
 	},

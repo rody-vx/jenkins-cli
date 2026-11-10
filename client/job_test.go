@@ -596,3 +596,19 @@ var _ = Describe("test function ParseJobPath", func() {
 		})
 	})
 })
+
+var _ = Describe("test function SplitJobName", func() {
+	It("split various forms", func() {
+		for _, name := range []string{"a/b/c", "a b c", "job/a/job/b/job/c", "/job/a/job/b/job/c/"} {
+			parent, job := SplitJobName(name)
+			Expect(parent).To(Equal("a/b"), name)
+			Expect(job).To(Equal("c"), name)
+		}
+		parent, job := SplitJobName("c")
+		Expect(parent).To(BeEmpty())
+		Expect(job).To(Equal("c"))
+		_, job = SplitJobName("")
+		Expect(job).To(BeEmpty())
+		Expect(JobFullName("job/a/job/b")).To(Equal("a/b"))
+	})
+})

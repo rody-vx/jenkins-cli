@@ -529,7 +529,7 @@ func (q *JobClient) Create(jobPayload CreateJobPayload) (err error) {
 	return q.CreateJobInFolder(jobPayload, "")
 }
 
-// CreateJobInFolder creates a job in a specific folder and create folder first if the folder does not exist
+// CreateJobInFolder creates a job in a specific folder, the folder must exist
 func (q *JobClient) CreateJobInFolder(jobPayload CreateJobPayload, path string) (err error) {
 	// create a job in path
 	playLoadData, _ := json.Marshal(jobPayload)
@@ -633,6 +633,38 @@ func ParseJobPath(jobName string) (path string) {
 		path = fmt.Sprintf("%s/job/%s", path, item)
 	}
 	return
+}
+
+// SplitJobName 은 job 경로를 상위 폴더 경로와 job 이름으로 나눈다
+// "a/b/c", "a b c", "job/a/job/b/job/c", "/job/a/job/b/job/c" 를 모두 받는다
+func SplitJobName(jobName string) (parent, name string) {
+	items := jobNameItems(jobName)
+	if len(items) == 0 {
+		return
+	}
+	name = items[len(items)-1]
+	parent = strings.Join(items[:len(items)-1], "/")
+	return
+}
+
+// JobFullName 은 job 경로를 Jenkins 의 full name("a/b/c") 형식으로 바꾼다
+func JobFullName(jobName string) string {
+	return strings.Join(jobNameItems(jobName), "/")
+}
+
+func jobNameItems(jobName string) (items []string) {
+	if strings.HasPrefix(jobName, "/job/") || strings.HasPrefix(jobName, "job/") {
+		parts := strings.Split(strings.Trim(jobName, "/"), "/")
+		for i := 0; i+1 < len(parts); i += 2 {
+			if parts[i] == "job" && parts[i+1] != "" {
+				items = append(items, parts[i+1])
+			}
+		}
+		return
+	}
+	return strings.FieldsFunc(jobName, func(r rune) bool {
+		return r == ' ' || r == '/'
+	})
 }
 
 // BuildWithParamsGetResponse get params request response with run id...

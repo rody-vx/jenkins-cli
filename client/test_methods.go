@@ -455,6 +455,11 @@ func PrepareForUpdatePipelineJob(roundTripper *mhttp.MockRoundTripper, rootURL, 
 
 // PrepareForCreatePipelineJob only for test
 func PrepareForCreatePipelineJob(roundTripper *mhttp.MockRoundTripper, rootURL, user, password string, jobPayload CreateJobPayload) {
+	PrepareForCreatePipelineJobInFolder(roundTripper, rootURL, user, password, jobPayload, "")
+}
+
+// PrepareForCreatePipelineJobInFolder only for test
+func PrepareForCreatePipelineJobInFolder(roundTripper *mhttp.MockRoundTripper, rootURL, user, password string, jobPayload CreateJobPayload, folder string) {
 	playLoadData, _ := json.Marshal(jobPayload)
 	formData := url.Values{
 		"json": {string(playLoadData)},
@@ -464,7 +469,7 @@ func PrepareForCreatePipelineJob(roundTripper *mhttp.MockRoundTripper, rootURL, 
 	}
 	payload := strings.NewReader(formData.Encode())
 
-	request, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/view/all/createItem", rootURL), payload)
+	request, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/view/all%s/createItem", rootURL, ParseJobPath(folder)), payload)
 	request.Header.Add(httpdownloader.ContentType, httpdownloader.ApplicationForm)
 	PrepareCommonPost(request, "", roundTripper, user, password, rootURL)
 	return
